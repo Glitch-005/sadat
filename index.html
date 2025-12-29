@@ -20,11 +20,12 @@
 
 <div id="result"></div>
 
+<script src="xlsx.full.min.js"></script>
 <script>
 let sheetData = [];
 
-// تحميل الملف تلقائيًا
-fetch("grades.xls")
+// تحميل ملف Excel
+fetch("grades.xlsx")
   .then(res => res.arrayBuffer())
   .then(data => {
     let workbook = XLSX.read(data, { type: "array" });
@@ -32,8 +33,7 @@ fetch("grades.xls")
     sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
   })
   .catch(() => {
-    document.getElementById("result").innerHTML =
-      "❌ ملف grades.xls غير موجود في نفس المجلد";
+    document.getElementById("result").innerHTML = "❌ لم يتم تحميل ملف النتائج";
   });
 
 function search() {
@@ -45,26 +45,22 @@ function search() {
     return;
   }
 
-  let firstRow = sheetData[0];
-  let colIndex = firstRow.findIndex(c =>
-    c?.toString().trim() === seat
-  );
+  // البحث في العمود B = العمود رقم 1
+  let found = sheetData.find(row => row[1]?.toString().trim() === seat);
 
-  if (colIndex === -1) {
+  if (!found) {
     result.innerHTML = "❌ رقم الجلوس غير موجود";
     return;
   }
 
-  // الصف K = رقم 10
-  let grade = sheetData[10]?.[colIndex];
+  // الحصول على النتيجة من العمود K = العمود رقم 10
+  let grade = found[10];
 
-  if (grade === undefined) {
-    result.innerHTML = "❌ لا توجد نتيجة";
-  } else {
-    result.innerHTML = `✅ نتيجتك: <b>${grade}</b>`;
-  }
+  if (grade === undefined) result.innerHTML = "❌ لا توجد نتيجة";
+  else result.innerHTML = `✅ نتيجتك: <b>${grade}</b>`;
 }
 </script>
+
 
 </body>
 </html>
