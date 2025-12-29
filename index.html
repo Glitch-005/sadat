@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>النتيجة برقم الجلوس</title>
+  <script src="xlsx.full.min.js"></script>
+
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 40px; }
+    input, button { padding: 10px; margin: 5px; }
+    #result { margin-top: 20px; font-size: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>الاستعلام عن النتيجة</h2>
+
+<input type="text" id="seat" placeholder="اكتب رقم الجلوس">
+<button onclick="search()">عرض النتيجة</button>
+
+<div id="result"></div>
+
+<script>
+let sheetData = [];
+
+// تحميل الملف تلقائيًا
+fetch("grades.xls")
+  .then(res => res.arrayBuffer())
+  .then(data => {
+    let workbook = XLSX.read(data, { type: "array" });
+    let sheet = workbook.Sheets[workbook.SheetNames[0]];
+    sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  })
+  .catch(() => {
+    document.getElementById("result").innerHTML =
+      "❌ ملف grades.xls غير موجود في نفس المجلد";
+  });
+
+function search() {
+  let seat = document.getElementById("seat").value.trim();
+  let result = document.getElementById("result");
+
+  if (!sheetData.length) {
+    result.innerHTML = "❌ لم يتم تحميل ملف النتائج";
+    return;
+  }
+
+  let firstRow = sheetData[0];
+  let colIndex = firstRow.findIndex(c =>
+    c?.toString().trim() === seat
+  );
+
+  if (colIndex === -1) {
+    result.innerHTML = "❌ رقم الجلوس غير موجود";
+    return;
+  }
+
+  // الصف K = رقم 10
+  let grade = sheetData[10]?.[colIndex];
+
+  if (grade === undefined) {
+    result.innerHTML = "❌ لا توجد نتيجة";
+  } else {
+    result.innerHTML = `✅ نتيجتك: <b>${grade}</b>`;
+  }
+}
+</script>
+
+</body>
+</html>
